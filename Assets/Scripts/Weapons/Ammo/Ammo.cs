@@ -1,4 +1,6 @@
+using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.AI;
 
 [DisallowMultipleComponent]
 public class Ammo : MonoBehaviour, IFireable
@@ -17,6 +19,7 @@ public class Ammo : MonoBehaviour, IFireable
     private float ammoChargeTimer;
     private bool isAmmoMaterialSet = false;
     private bool overrideAmmoMovement;
+    private bool isColliding = false;
 
     private void Awake()
     {
@@ -47,7 +50,13 @@ public class Ammo : MonoBehaviour, IFireable
         ammoRange -= distanceVector.magnitude;
 
         if (ammoRange < 0f)
-        {
+        {   // Eger ammo out of range olduysa ve player ammo ise multiplier'i 1 dusurelim.
+            if(ammoDetails.isPlayerAmmo)
+            {
+                // make it lesser.
+                StaticEventHandler.CallMultiplierEvent(false);
+            }
+
             DisableAmmo();
         }
 
@@ -55,10 +64,41 @@ public class Ammo : MonoBehaviour, IFireable
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
+        // mermi sadece bir kere damage verebilir.
+        if (isColliding) return;
+
+        DealDamage(collision);
         // Show ammo hit effect
         AmmoHitEffect();
 
         DisableAmmo();
+    }
+
+    private void DealDamage(Collider2D collision)
+    {
+
+        Health health = collision.GetComponent<Health>();
+
+        bool enemyHit = false;
+        
+        if (health != null)
+        {
+            isColliding = true;
+            health.TakeDamage(ammoDetails.ammoDamage);
+
+            if (health.enemy != null)
+            {
+                enemyHit = true;
+            }
+        }
+
+        if (ammoDetails.isPlayerAmmo)
+        {
+            if(enemyHit)
+                StaticEventHandler.CallMultiplierEvent(true);
+            else
+                StaticEventHandler.CallMultiplierEvent(false);
+        }
     }
 
     /// <summary>
@@ -71,6 +111,8 @@ public class Ammo : MonoBehaviour, IFireable
         #region Ammo
 
         this.ammoDetails = ammoDetails;
+
+        isColliding = false;
 
         // Set fire direction
         SetFireDirection(ammoDetails, aimAngle, weaponAimAngle, weaponAimDirectionVector);

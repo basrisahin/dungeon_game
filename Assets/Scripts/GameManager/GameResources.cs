@@ -92,6 +92,7 @@ public class GameResources : MonoBehaviour
     [Tooltip("Populate with ammo icon prefab")]
     #endregion
     public GameObject ammoIconPrefab;
+    public GameObject heartPrefab;
 
     #region Validation
 #if UNITY_EDITOR

@@ -21,8 +21,9 @@ public class PlayerControl : MonoBehaviour
     private float moveSpeed;
     private Coroutine playerRollCoroutine;
     private WaitForFixedUpdate waitForFixedUpdate;
-    private bool isPlayerRolling = false;
+    [HideInInspector] public bool isPlayerRolling = false;
     private float playerRollCooldownTimer = 0f;
+    private bool isPlayerMovementDisabled = false;
 
     private void Awake()
     {
@@ -74,6 +75,9 @@ public class PlayerControl : MonoBehaviour
 
     private void Update()
     {
+        if(isPlayerMovementDisabled)
+            return;
+
         // if player is rolling then return
         if (isPlayerRolling) return;
 
@@ -238,15 +242,15 @@ public class PlayerControl : MonoBehaviour
     private void SwitchWeaponInput()
     {
         // Switch weapon if mouse scroll wheel selecetd
-        if (Input.mouseScrollDelta.y < 0f)
-        {
-            PreviousWeapon();
-        }
+        // if (Input.mouseScrollDelta.y < 0f)
+        // {
+        //     PreviousWeapon();
+        // }
 
-        if (Input.mouseScrollDelta.y > 0f)
-        {
-            NextWeapon();
-        }
+        // if (Input.mouseScrollDelta.y > 0f)
+        // {
+        //     NextWeapon();
+        // }
 
         if (Input.GetKeyDown(KeyCode.Alpha1))
         {
@@ -371,6 +375,17 @@ public class PlayerControl : MonoBehaviour
     {
         // if in collision with something stop player roll coroutine
         StopPlayerRollRoutine();
+    }
+
+    public void EnablePlayer()
+    {
+        isPlayerMovementDisabled = false;
+    }
+
+    public void DisablePlayer()
+    {
+        isPlayerMovementDisabled = true;
+        player.idleEvent.CallIdleEvent();
     }
 
     private void StopPlayerRollRoutine()

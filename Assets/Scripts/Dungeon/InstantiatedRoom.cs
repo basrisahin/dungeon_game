@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 using UnityEngine.Tilemaps;
 
 [DisallowMultipleComponent]
@@ -342,6 +343,11 @@ public class InstantiatedRoom : MonoBehaviour
         boxCollider2D.enabled = false;
     }
 
+    public void EnableRoomCollider()
+    {
+        boxCollider2D.enabled = true;
+    }
+
     /// <summary>
     /// Lock the room doors
     /// </summary>
@@ -357,6 +363,28 @@ public class InstantiatedRoom : MonoBehaviour
 
         // Disable room trigger collider
         DisableRoomCollider();
+    }
+
+    // Kapilari unlock ederken bir sure bekleyelim demistik o yuzden Coroutine'le yapiyoruz.
+    public void UnlockDoors(float doorUnlockDelay)
+    {
+        StartCoroutine(UnlockDoorsRoutine(doorUnlockDelay));
+    }
+
+    private IEnumerator UnlockDoorsRoutine(float doorUnlockDelay)
+    {   // sadece bekleme suresi ekledik.
+        if (doorUnlockDelay > 0f)
+        {
+            yield return new WaitForSeconds(doorUnlockDelay);
+        }
+
+        Door [] doorArray = GetComponentsInChildren<Door>();
+        foreach (Door door in doorArray)
+        {
+            door.UnlockDoor();
+        }
+        // Enable room trigger collider
+        EnableRoomCollider();
     }
 
 }

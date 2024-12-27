@@ -50,6 +50,28 @@ public class EnemyDetailsSO : ScriptableObject
     #endregion
     public Color enemyMaterializeColor;
 
+    // Weapon Details
+    public WeaponDetailsSO enemyWeapon;
+    
+    // Enemy'nin iki attagi arasindaki fark ne kadardir olmali? Random btw 0.1 ve 1 gibi.
+    public float firingIntervalMin = 0.1f;
+    public float firingIntervalMax = 1f;
+    // Bir attack ne kadar surecek. Random btw min and max.
+    public float firingDurationMin = 1f;
+    public float firingDurationMax = 2f;
+
+    // Enemy'in sikmasi icin onunde engel olmamali mi?
+    // Eger bu deger 1'se enemy gorus alaninda engel oldugu icin sikmaz.
+    // Bordo bereli enemy. 
+    public bool firingLineOfSightRequired;    
+
+    // Enemy Health Details
+    public EnemyHeathDetails[] enemyHeathDetailsArray;
+    // Only for player
+    public bool isImmuneAfterHit = false;
+    public float hitImmuneTime;
+    public bool isHealthBarDisplayed = false;
+
     #region Validation
 #if UNITY_EDITOR
     // Validate the scriptable object details entered
@@ -61,6 +83,12 @@ public class EnemyDetailsSO : ScriptableObject
         HelperUtilities.ValidateCheckNullValue(this, nameof(enemyStandardMaterial), enemyStandardMaterial);
         HelperUtilities.ValidateCheckPositiveValue(this, nameof(enemyMaterializeTime), enemyMaterializeTime, true);
         HelperUtilities.ValidateCheckNullValue(this, nameof(enemyMaterializeShader), enemyMaterializeShader);
+        HelperUtilities.ValidateCheckPositiveRange(this,nameof(firingIntervalMin), firingIntervalMin, nameof(firingIntervalMax), firingIntervalMax ,false);
+        HelperUtilities.ValidateCheckPositiveRange(this,nameof(firingDurationMin), firingDurationMin, nameof(firingDurationMax), firingDurationMax ,false);
+        if(isImmuneAfterHit)
+        {
+            HelperUtilities.ValidateCheckPositiveValue(this, nameof(hitImmuneTime), hitImmuneTime, false);
+        }
     }
 
 #endif

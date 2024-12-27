@@ -23,6 +23,12 @@ using UnityEngine.Rendering;
 [RequireComponent(typeof(ReloadWeaponEvent))]
 [RequireComponent(typeof(ReloadWeapon))]
 [RequireComponent(typeof(WeaponReloadedEvent))]
+[RequireComponent(typeof(HealthEvent))]
+[RequireComponent(typeof(Health))]
+[RequireComponent(typeof(ReceiveContactDamage))]
+[RequireComponent(typeof(DealContactDamage))]
+[RequireComponent(typeof(DestroyedEvent))]
+[RequireComponent(typeof(Destroyed))]
 [RequireComponent(typeof(AnimatePlayer))]
 [RequireComponent(typeof(SortingGroup))]
 [RequireComponent(typeof(SpriteRenderer))]
@@ -38,7 +44,7 @@ using UnityEngine.Rendering;
 public class Player : MonoBehaviour
 {
     [HideInInspector] public PlayerDetailsSO playerDetails;
-    [HideInInspector] public Health health;
+    [HideInInspector] public PlayerControl playerControl;
     [HideInInspector] public MovementByVelocityEvent movementByVelocityEvent;
     [HideInInspector] public MovementToPositionEvent movementToPositionEvent;
     [HideInInspector] public IdleEvent idleEvent;
@@ -49,6 +55,9 @@ public class Player : MonoBehaviour
     [HideInInspector] public WeaponFiredEvent weaponFiredEvent;
     [HideInInspector] public ReloadWeaponEvent reloadWeaponEvent;
     [HideInInspector] public WeaponReloadedEvent weaponReloadedEvent;
+    [HideInInspector] public Health health;
+    [HideInInspector] public HealthEvent healthEvent;
+    [HideInInspector] public DestroyedEvent destroyedEvent;
     [HideInInspector] public SpriteRenderer spriteRenderer;
     [HideInInspector] public Animator animator;
 
@@ -58,6 +67,9 @@ public class Player : MonoBehaviour
     {
         // Load components
         health = GetComponent<Health>();
+        healthEvent = GetComponent<HealthEvent>();
+        destroyedEvent = GetComponent<DestroyedEvent>();
+        playerControl = GetComponent<PlayerControl>();
         movementByVelocityEvent = GetComponent<MovementByVelocityEvent>();
         movementToPositionEvent = GetComponent<MovementToPositionEvent>();
         idleEvent = GetComponent<IdleEvent>();
@@ -72,6 +84,25 @@ public class Player : MonoBehaviour
         animator = GetComponent<Animator>();
     }
 
+    private void OnEnable() 
+    {
+        healthEvent.OnHealthChanged += HealthEvent_OnHealthChanged;
+    }
+
+    private void OnDisable() 
+    {
+        healthEvent.OnHealthChanged -= HealthEvent_OnHealthChanged;
+    }
+
+    private void HealthEvent_OnHealthChanged(HealthEvent healthEvent, HealthEventArgs healthEventArgs)
+    {
+        //Debug.Log($"Player Health: {healthEventArgs.healthAmount}");
+
+        if(healthEventArgs.healthAmount <= 0f)
+        {
+            destroyedEvent.CallDestroyedEvent(true, 0);
+        }
+    }
 
     /// <summary>
     /// Initialize the player

@@ -21,3 +21,5 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 3ae31c7435aa8324a8affaab3077215d, type: 2}
   playerMiniMapIcon: {fileID: 21300000, guid: 315b2925a8c3976498b2ddde24a0d5be, type: 3}
   playerHandSprite: {fileID: 21300000, guid: d06a4c6675a50e0499105d5f4715b651, type: 3}
+  isImmuneAfterHit: 1
+  hitImmunityTime: 3

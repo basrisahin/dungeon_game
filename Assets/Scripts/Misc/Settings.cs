@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
+using System.Security.Policy;
 
 public static class Settings
 {
@@ -17,7 +19,7 @@ public static class Settings
     #region ROOM SETTINGS
     public const float fadeInTime = 0.5f; // time to fade in the room
     public const int maxChildCorridors = 3; // Max number of child corridors leading from a room. - maximum should be 3 although this is not recommended since it can cause the dungeon building to fail since the rooms are more likely to not fit together;
-
+    public const float doorUnlockDelay = 1f;
     #endregion
 
 
@@ -39,10 +41,11 @@ public static class Settings
 
     // Animator parameters - Enemy
     public static float baseSpeedForEnemyAnimations = 3f;
-
-
     // Animator parameters - Door
     public static int open = Animator.StringToHash("open");
+    // Animator parameters - DamagableDecoration
+    public static int destroy = Animator.StringToHash("destroy");
+    public static String stateDestroyed = "Destroyed";
 
     #endregion
 
@@ -64,7 +67,16 @@ public static class Settings
 
     #endregion
 
+    #region ENEMY PARAMETERS
+    public const int defaultEnemyHealth = 20;
+    #endregion
+    
     #region UI PARAMETERS
     public const float uiAmmoIconSpacing = 4f;
+    public const float uiHearthSpacing = 16f;
+    #endregion
+
+    #region CONTACT DAMAGE PARAMETERS
+    public const float contactDamageCollisionDelay = 0.1f;
     #endregion
 }

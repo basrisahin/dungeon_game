@@ -1,8 +1,26 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.UIElements;
 
 #region REQUIRE COMPONENTS
+[RequireComponent(typeof(EnemyWeaponAI))]
+[RequireComponent(typeof(AimWeaponEvent))]
+[RequireComponent(typeof(AimWeapon))]
+[RequireComponent(typeof(FireWeaponEvent))]
+[RequireComponent(typeof(FireWeapon))]
+[RequireComponent(typeof(SetActiveWeaponEvent))]
+[RequireComponent(typeof(ActiveWeapon))]
+[RequireComponent(typeof(WeaponFiredEvent))]
+[RequireComponent(typeof(ReloadWeaponEvent))]
+[RequireComponent(typeof(ReloadWeapon))]
+[RequireComponent(typeof(WeaponReloadedEvent))]
+[RequireComponent(typeof(WeaponReloadedEvent))]
+[RequireComponent(typeof(HealthEvent))]
+[RequireComponent(typeof(Health))]
+[RequireComponent(typeof(DealContactDamage))]
+[RequireComponent(typeof(DestroyedEvent))]
+[RequireComponent(typeof(Destroyed))]
 [RequireComponent(typeof(EnemyMovementAI))]
 [RequireComponent(typeof(MovementToPositionEvent))]
 [RequireComponent(typeof(MovementToPosition))]
@@ -22,9 +40,18 @@ using UnityEngine.Rendering;
 public class Enemy : MonoBehaviour
 {
     [HideInInspector] public EnemyDetailsSO enemyDetails;
+    [HideInInspector] public FireWeaponEvent fireWeaponEvent;
+    [HideInInspector] public AimWeaponEvent aimWeaponEvent;
+    private FireWeapon fireWeapon;
+    private SetActiveWeaponEvent setActiveWeaponEvent;
     private EnemyMovementAI enemyMovementAI;
     [HideInInspector] public MovementToPositionEvent movementToPositionEvent;
     [HideInInspector] public IdleEvent idleEvent;
+
+    private HealthEvent healthEvent;
+    private DestroyedEvent destroyedEvent;
+    private Health health;
+
     private MaterializeEffect materializeEffect;
     private CircleCollider2D circleCollider2D;
     private PolygonCollider2D polygonCollider2D;
@@ -33,10 +60,17 @@ public class Enemy : MonoBehaviour
 
     private void Awake()
     {
-        // Load components
+        // Cache components
+        aimWeaponEvent = GetComponent<AimWeaponEvent>();
+        fireWeaponEvent = GetComponent<FireWeaponEvent>();
+        fireWeapon = GetComponent<FireWeapon>();
+        setActiveWeaponEvent = GetComponent<SetActiveWeaponEvent>();
         enemyMovementAI = GetComponent<EnemyMovementAI>();
         movementToPositionEvent = GetComponent<MovementToPositionEvent>();
         idleEvent = GetComponent<IdleEvent>();
+        healthEvent = GetComponent<HealthEvent>();
+        destroyedEvent = GetComponent<DestroyedEvent>();
+        health = GetComponent<Health>();
         materializeEffect = GetComponent<MaterializeEffect>();
         circleCollider2D = GetComponent<CircleCollider2D>();
         polygonCollider2D = GetComponent<PolygonCollider2D>();
@@ -44,8 +78,31 @@ public class Enemy : MonoBehaviour
         animator = GetComponent<Animator>();
     }
 
+    private void OnEnable() 
+    {
+        healthEvent.OnHealthChanged += HealthEvent_OnHealthLost;
+    }
+
+    private void OnDisable() 
+    {
+        healthEvent.OnHealthChanged -= HealthEvent_OnHealthLost;
+    }
+
+    private void HealthEvent_OnHealthLost(HealthEvent healthEvent, HealthEventArgs healthEventArgs)
+    {
+        if(healthEventArgs.healthAmount <= 0)
+        {
+            EnemyDestroyed();
+        }
+    }
+
+    private void EnemyDestroyed()
+    {
+        destroyedEvent.CallDestroyedEvent(false, health.GetStartingHealth());
+    }
+
     /// <summary>
-    /// Initialise the enemy
+    /// /// Initialise the enemy
     /// </summary>
     public void EnemyInitialization(EnemyDetailsSO enemyDetails, int enemySpawnNumber, DungeonLevelSO dungeonLevel)
     {
@@ -53,7 +110,11 @@ public class Enemy : MonoBehaviour
 
         SetEnemyMovementUpdateFrame(enemySpawnNumber);
 
+        SetEnemyStartingHealth(dungeonLevel);
+
         SetEnemyAnimationSpeed();
+
+        SetEnemyStartingWeapon();
 
         // Materialise enemy
         StartCoroutine(MaterializeEnemy());
@@ -68,6 +129,29 @@ public class Enemy : MonoBehaviour
         enemyMovementAI.SetUpdateFrameNumber(enemySpawnNumber % Settings.targetFrameRateToSpreadPathfindingOver);
     }
 
+    private void SetEnemyStartingHealth(DungeonLevelSO dungeonLevel)
+    {
+        foreach (EnemyHeathDetails enemyHeathDetails in enemyDetails.enemyHeathDetailsArray)
+        {
+            if(enemyHeathDetails.dungeonLevel == dungeonLevel)
+            {
+                health.SetStartingHealth(enemyHeathDetails.enemyHealthAmount);
+                return;
+            }
+        }
+        health.SetStartingHealth(Settings.defaultEnemyHealth);
+    }
+
+    private void SetEnemyStartingWeapon()
+    {
+        if (enemyDetails.enemyWeapon != null)
+        {
+            Weapon weapon = new Weapon() {weaponDetails=enemyDetails.enemyWeapon, weaponReloadTimer = 0f, weaponClipRemainingAmmo = enemyDetails.enemyWeapon.weaponClipAmmoCapacity,
+                                          weaponRemainingAmmo = enemyDetails.enemyWeapon.weaponAmmoCapacity, isWeaponReloading = false};
+            
+            setActiveWeaponEvent.CallSetActiveWeaponEvent(weapon);
+        }
+    }
 
     /// <summary>
     /// Set enemy animator speed to match movement speed
@@ -98,6 +182,8 @@ public class Enemy : MonoBehaviour
 
         // Enable/Disable movement AI
         enemyMovementAI.enabled = isEnabled;
+        // Enable/Disable fire Weapon
+        fireWeapon.enabled = isEnabled;
 
     }
 }

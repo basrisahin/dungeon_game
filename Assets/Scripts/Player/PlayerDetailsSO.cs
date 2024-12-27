@@ -60,6 +60,10 @@ public class PlayerDetailsSO : ScriptableObject
     #endregion
     public Sprite playerHandSprite;
 
+    //player Health related variables.
+    public bool isImmuneAfterHit = false;
+    public float hitImmunityTime;
+
     #region Validation
 #if UNITY_EDITOR
     private void OnValidate()
